@@ -8,8 +8,9 @@ export class CreateMessageDto {
   receiver: string;    
 
   @IsString()
+  @MinLength(1)
+  @MaxLength(500)
   message: string;   
-
 
   timestamp?: Date; 
 }
