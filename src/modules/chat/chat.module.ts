@@ -6,12 +6,32 @@ import { ChatController } from './controller/chat.controller';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { KafkaService } from 'src/shared/service/kafka.service';
+import { KafkaProducerService } from 'src/shared/service/kafka.service';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { logLevel } from 'kafkajs';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Chat', schema: ChatSchema }]),
     ConfigModule, 
+    ClientsModule.registerAsync([
+      {
+        name: 'CHAT_SERVICE',
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'chat-app-client',
+              brokers: [configService.get<string>('KAFKA_BROKER') || 'localhost:9092'],
+            },
+            consumer: {
+              groupId: 'chat-app-group',
+            },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,7 +45,7 @@ import { KafkaService } from 'src/shared/service/kafka.service';
   providers: [
     ChatService, 
     AuthGuard,
-    KafkaService
+    KafkaProducerService
   ],
 })
 

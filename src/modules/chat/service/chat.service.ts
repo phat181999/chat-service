@@ -1,23 +1,27 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Chat } from "../entity/chat.entity";
 import { Model } from "mongoose";
-import { KafkaService } from "src/shared/service/kafka.service";
+import { ClientKafka } from "@nestjs/microservices";
+import { KafkaProducerService } from "src/shared/service/kafka.service";
 
 @Injectable()
 export class ChatService  {
 
     constructor(
         @InjectModel(Chat.name) private chatModel: Model<Chat>,
-        private kafkaService: KafkaService
+        private kafkaProducer: KafkaProducerService
     ) {
     }
 
     async createChat(chat: Chat): Promise<Chat> {
         try {
             const {sender, receiver, message} = chat;
-            await this.kafkaService.checkAndWaitForUserExists(receiver);
-            const newChat = new this.chatModel(chat);
+            await this.kafkaProducer.sendMessage('check-user', {
+                key: sender,
+                value: JSON.stringify({ sender, receiver, message, timestamp: new Date().toISOString() }),
+              });
+            const newChat = await new this.chatModel(chat);
             return await newChat.save();
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

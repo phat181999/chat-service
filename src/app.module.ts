@@ -5,7 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatModule } from './modules/chat/chat.module';
 import { ConfigService } from '@nestjs/config';
-import { KafkaService } from './shared/service/kafka.service';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -17,9 +17,10 @@ import { KafkaService } from './shared/service/kafka.service';
       }),
       inject: [ConfigService],
     }),
+  
     ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, KafkaService],
+  providers: [AppService, ],
 })
 export class AppModule {}

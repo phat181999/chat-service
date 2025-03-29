@@ -6,21 +6,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
 
-  // Connect Kafka microservice
+  // ✅ Thêm Kafka microservice
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
     options: {
       client: {
-        brokers: ['localhost:9092'],
+        brokers: [process.env.KAFKA_BROKER ?? 'localhost:9092'],
       },
       consumer: {
-        groupId: 'chat-service-group',
+        groupId: 'chat-app-group',
       },
     },
   });
 
   await app.startAllMicroservices();
-
   await app.listen(process.env.PORT ?? 4000);
+  console.log('🚀 Chat Service is running');
 }
 bootstrap();
