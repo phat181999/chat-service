@@ -1,33 +1,47 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Chat } from "../entity/chat.entity";
 import { Model } from "mongoose";
-import { ClientKafka } from "@nestjs/microservices";
-import { KafkaProducerService } from "src/shared/service/kafka.service";
+import { KafkaService } from "src/shared/module/kafka/service/kafka.service";
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { TcpService } from "src/shared/module/tcp/service/tcp.service";
 
 @Injectable()
 export class ChatService  {
-
+    private logger: Logger;
     constructor(
         @InjectModel(Chat.name) private chatModel: Model<Chat>,
-        private kafkaProducer: KafkaProducerService
-    ) {
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        // private kafkaService: KafkaService,
+        private tcpService: TcpService
+      ) {
+      this.logger = new Logger(ChatService.name);
     }
 
     async createChat(chat: Chat): Promise<Chat> {
         try {
-            const {sender, receiver, message} = chat;
-            await this.kafkaProducer.sendMessage('check-user', {
-                key: sender,
-                value: JSON.stringify({ sender, receiver, message, timestamp: new Date().toISOString() }),
-              });
-            const newChat = await new this.chatModel(chat);
-            return await newChat.save();
+          const { sender, receiver, message } = chat;
+          
+          // 1. First check Redis cache
+          // const cachedUser = await this.cacheManager.get(`user:${receiver}`);
+          // if (cachedUser === 'exists') {
+          //   // User exists in cache, proceed with chat creation
+          //   const newChat = await new this.chatModel(chat);
+          //   return await newChat.save();
+          // }
+    
+          const checkUser = await this.tcpService.checkUser(receiver);
+          if(!checkUser) {
+            throw new HttpException('Receiver not found', HttpStatus.NOT_FOUND);
+          }
+          const newChat = await new this.chatModel(chat);
+          return await newChat.save();
         } catch (error) {
-            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
-    }
-
+      }
+    
     async findAllChats(): Promise<Chat[]> {
         try {
             return await this.chatModel.find().exec();
