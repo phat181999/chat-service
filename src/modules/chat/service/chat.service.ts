@@ -13,7 +13,6 @@ export class ChatService  {
     constructor(
         @InjectModel(Chat.name) private chatModel: Model<Chat>,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
-        // private kafkaService: KafkaService,
         private tcpService: TcpService
       ) {
       this.logger = new Logger(ChatService.name);
@@ -23,13 +22,12 @@ export class ChatService  {
         try {
           const { sender, receiver, message } = chat;
           
-          // 1. First check Redis cache
-          // const cachedUser = await this.cacheManager.get(`user:${receiver}`);
-          // if (cachedUser === 'exists') {
-          //   // User exists in cache, proceed with chat creation
-          //   const newChat = await new this.chatModel(chat);
-          //   return await newChat.save();
-          // }
+          const cachedUser = await this.cacheManager.get(`user:${receiver}`);
+          if (cachedUser === 'exists') {
+            this.logger.log(`User ${receiver} exists in cache`);
+            const newChat = await new this.chatModel(chat);
+            return await newChat.save();
+          }
     
           const checkUser = await this.tcpService.checkUser(receiver);
           if(!checkUser) {
@@ -40,7 +38,7 @@ export class ChatService  {
         } catch (error) {
           throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
-      }
+    }
     
     async findAllChats(): Promise<Chat[]> {
         try {

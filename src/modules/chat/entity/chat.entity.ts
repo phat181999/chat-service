@@ -1,6 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
+export type MessageType = {
+    type: 'text' | 'image' | 'video';
+    content: string;
+};
+
 @Schema()
 export class Chat extends Document {
     @Prop({ required: true })
@@ -9,8 +14,8 @@ export class Chat extends Document {
     @Prop({ required: true })
     receiver: string;
 
-    @Prop({ required: true })
-    message: string;
+    @Prop({ required: true, type: Object })
+    message: MessageType;
 
     @Prop({ default: Date.now })
     timestamp?: Date;
