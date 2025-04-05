@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, HttpCode, HttpStatus, Logger, HttpException, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, HttpCode, HttpStatus, Logger, HttpException, UseGuards, Req, Res, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
 import { ChatService } from '../service/chat.service';
 import { Chat } from '../entity/chat.entity';
 import { Response } from '../../../shared/interface/response';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { storage } from 'src/config/cloudinary-storage';
 
 @Controller('chat')
 export class ChatController {
@@ -13,23 +15,26 @@ export class ChatController {
 
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.CREATED)
-    @Post()
+    @UseInterceptors(FilesInterceptor('files', 10, { storage }))
+    @Post('create-chat')
     async createChat(
         @Body() chat: Chat,
         @Req() req,
-        @Res() res
+        @Res() res,
+        @UploadedFiles() files: Express.Multer.File[] 
     ): Promise<Chat | HttpException> {
         try{
             this.logger.log(`createChat: ${JSON.stringify(chat)}`);
             const userId = req.user.sub;
             const { receiver, message, timestamp } = chat;
-
+            const fileDetails = req.body.fileDetails || [];
+            
             const data = await this.chatService.createChat({
                 sender: userId,
                 receiver,
                 message,
-                timestamp,
-            } as Chat);
+                fileUrls: fileDetails
+            } as unknown as Chat);
 
             return res.status(HttpStatus.CREATED).json({
                 data: data,
@@ -40,6 +45,15 @@ export class ChatController {
             this.logger.error(`createChat: ${error.message}`);
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Post('post')
+    @UseInterceptors(FileInterceptor('file', { storage }))
+    uploadFile(@UploadedFile() file: Express.Multer.File) {
+      return {
+        message: 'Upload thành công!',
+        url: file.path,
+      };
     }
 
     @HttpCode(HttpStatus.OK)

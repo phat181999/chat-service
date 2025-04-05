@@ -21,7 +21,7 @@ export class ChatService  {
     async createChat(chat: Chat): Promise<Chat> {
         try {
           const { sender, receiver, message } = chat;
-          
+          console.log(chat, "chat create")
           const cachedUser = await this.cacheManager.get(`user:${receiver}`);
           if (cachedUser === 'exists') {
             this.logger.log(`User ${receiver} exists in cache`);

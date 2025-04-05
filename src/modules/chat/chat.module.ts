@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { forwardRef, MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChatSchema } from './entity/chat.entity';
 import { ChatService } from './service/chat.service';
@@ -9,6 +9,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { KafkaModule } from '../../shared/module/kafka/kafka.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { TcpModule } from 'src/shared/module/tcp/tcp.module';
+import { CloudinaryProvider } from 'src/config/cloudinary.provider';
+import { CloudinaryUploadMiddleware } from 'src/middlewares/cloudinary.middleware';
 
 @Module({
   imports: [
@@ -30,7 +32,15 @@ import { TcpModule } from 'src/shared/module/tcp/tcp.module';
   providers: [
     ChatService, 
     AuthGuard,
+    CloudinaryProvider
   ],
+  exports:['CLOUDINARY']
 })
 
-export class ChatModule {}
+export class ChatModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CloudinaryUploadMiddleware)
+      .forRoutes({path: 'chat/create-chat', method: RequestMethod.POST});
+  }
+}
