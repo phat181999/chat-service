@@ -37,11 +37,11 @@ jobs:
     # Step 5: Build the Docker image
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }} .  # Replace 'my-app' with your app's name
-        docker tag ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/chat-service:${{ github.sha }} .  # Replace 'chat-service' with your app's name
+        docker tag ${{ secrets.DOCKER_USERNAME }}/chat-service:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/chat-service:latest
 
     # Step 6: Push Docker image to Docker Hub
     - name: Push Docker image to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }}
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/chat-service:${{ github.sha }}
+        docker push ${{ secrets.DOCKER_USERNAME }}/chat-service:latest
