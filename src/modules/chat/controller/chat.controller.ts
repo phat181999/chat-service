@@ -4,7 +4,7 @@ import { Chat } from '../entity/chat.entity';
 import { Response } from '../../../shared/interface/response';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { storage } from 'src/config/cloudinary-storage';
+import { storage } from 'src/common/interceptors/cloudinary-storage';
 
 @Controller('chat')
 export class ChatController {
@@ -13,10 +13,12 @@ export class ChatController {
         this.logger = new Logger(ChatController.name);
     }
 
+    @UseInterceptors(
+        FilesInterceptor('files', 10, { storage }),
+    )
     @UseGuards(AuthGuard)
-    @HttpCode(HttpStatus.CREATED)
-    @UseInterceptors(FilesInterceptor('files', 10, { storage }))
     @Post('create-chat')
+    @HttpCode(HttpStatus.CREATED)
     async createChat(
         @Body() chat: Chat,
         @Req() req,
@@ -26,9 +28,11 @@ export class ChatController {
         try{
             this.logger.log(`createChat: ${JSON.stringify(chat)}`);
             const userId = req.user.sub;
-            const { receiver, message, timestamp } = chat;
-            const fileDetails = req.body.fileDetails || [];
-            
+            const { receiver, message } = chat;
+            let fileDetails: string[] = [];
+            if (files && files.length > 0) {
+                fileDetails = files.map((file: Express.Multer.File) => file.path);
+            }
             const data = await this.chatService.createChat({
                 sender: userId,
                 receiver,
@@ -45,15 +49,6 @@ export class ChatController {
             this.logger.error(`createChat: ${error.message}`);
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @Post('post')
-    @UseInterceptors(FileInterceptor('file', { storage }))
-    uploadFile(@UploadedFile() file: Express.Multer.File) {
-      return {
-        message: 'Upload thành công!',
-        url: file.path,
-      };
     }
 
     @HttpCode(HttpStatus.OK)

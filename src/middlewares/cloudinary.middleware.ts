@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as multer from 'multer';
-import { storage } from '../config/cloudinary-storage';
+import { storage } from '../common/interceptors/cloudinary-storage';
 
 const upload = multer({ storage });
 
@@ -9,7 +9,7 @@ const upload = multer({ storage });
 export class CloudinaryUploadMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     // console.log('CloudinaryUploadMiddleware called',req.is('multipart/form-data') ,req.body.files);
-    if (!req.is('multipart/form-data') ) {
+    if (!req.is('multipart/form-data') || !req.body.files) {
       console.log('No files to upload or not multipart/form-data');
       return next(); 
     }

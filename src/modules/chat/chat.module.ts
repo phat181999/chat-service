@@ -38,9 +38,10 @@ import { CloudinaryUploadMiddleware } from 'src/middlewares/cloudinary.middlewar
 })
 
 export class ChatModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(CloudinaryUploadMiddleware)
-      .forRoutes({path: 'chat/create-chat', method: RequestMethod.POST});
-  }
+  
 }
+// configure(consumer: MiddlewareConsumer) {
+//   consumer
+//     .apply(CloudinaryUploadMiddleware)
+//     .forRoutes({path: 'chat/create-chat', method: RequestMethod.POST});
+// }

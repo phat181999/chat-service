@@ -20,13 +20,19 @@ export class ChatService  {
 
     async createChat(chat: Chat): Promise<Chat> {
         try {
-          const { sender, receiver, message } = chat;
+          const { sender, receiver, message, fileUrls  } = chat;
           console.log(chat, "chat create")
           const cachedUser = await this.cacheManager.get(`user:${receiver}`);
           if (cachedUser === 'exists') {
             this.logger.log(`User ${receiver} exists in cache`);
-            const newChat = await new this.chatModel(chat);
-            return await newChat.save();
+            const newChat = new this.chatModel({
+                sender,
+                receiver,
+                message,
+                fileUrls,  // Save file URLs if present
+                timestamp: new Date(),  // Use the timestamp or generate it
+              });
+              return await newChat.save();
           }
     
           const checkUser = await this.tcpService.checkUser(receiver);
