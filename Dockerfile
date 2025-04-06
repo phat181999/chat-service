@@ -10,7 +10,8 @@ WORKDIR /usr/src/app
 COPY --chown=node:node package*.json ./
 
 # Install app dependencies using `npm ci`
-RUN npm ci
+RUN npm ci --legacy-peer-deps
+
 
 # Bundle app source
 COPY --chown=node:node . .
