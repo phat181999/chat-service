@@ -17,6 +17,11 @@ export class Chat extends Document {
     @Prop({ required: true, type: Object })
     message: MessageType;
 
+    @Prop({ required: true, type: Object })
+    fileUrls: {
+        [key: string]: string;
+    };
+
     @Prop({ default: Date.now })
     timestamp?: Date;
 }

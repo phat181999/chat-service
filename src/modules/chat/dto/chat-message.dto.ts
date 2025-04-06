@@ -10,7 +10,12 @@ export class CreateMessageDto {
   @IsString()
   @MinLength(1)
   @MaxLength(500)
-  message: string;   
+  message: object;   
+
+  @IsOptional()
+  fileUrls: {
+    [key: string]: string;
+  };
 
   timestamp?: Date; 
 }
