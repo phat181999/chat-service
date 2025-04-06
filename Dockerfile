@@ -42,7 +42,7 @@ RUN npm run build
 ENV NODE_ENV production
 
 # Clean up and install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
 
 USER node
 
