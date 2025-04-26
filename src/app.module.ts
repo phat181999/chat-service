@@ -5,7 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatModule } from './modules/chat/chat.module';
 import { ConfigService } from '@nestjs/config';
-import { KafkaModule } from './shared/module/kafka/kafka.module';
+import { KafkaModule } from './modules/kafka/kafka.module';
 import { TcpModule } from './shared/module/tcp/tcp.module';
 
 @Module({
@@ -18,7 +18,6 @@ import { TcpModule } from './shared/module/tcp/tcp.module';
       }),
       inject: [ConfigService],
     }),
-    // KafkaModule,
     ChatModule,
     TcpModule
   ],
