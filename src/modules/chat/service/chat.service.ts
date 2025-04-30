@@ -42,14 +42,15 @@ export class ChatService  {
                 throw new HttpException('Receiver not found', HttpStatus.NOT_FOUND);
             }
             const newChat = await new this.chatModel(chat);
+            const valueEmitToNoti = {sender, receiver, message, timestamp: new Date()};
             await this.kafkaService.sendMessage({
                 topic: ChatKafkaTopic.MESSAGE_CREATED,
                 message: {
                   key: sender,
-                  value: JSON.stringify(newChat),
-                  timestamp: new Date(), // optional — safe to include
+                  value: JSON.stringify(valueEmitToNoti),
+                  timestamp: new Date(),
                 },
-              });
+            });
             return await newChat.save();
         } catch (error) {
           throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
