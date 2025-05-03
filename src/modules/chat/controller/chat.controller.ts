@@ -5,6 +5,7 @@ import { Response } from '../../../shared/interface/response';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { storage } from 'src/common/interceptors/cloudinary-storage';
+import { CreateMessageDto, CreateMessageResponseDto } from '../dto/chat-message.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -20,14 +21,15 @@ export class ChatController {
     @Post('create-chat')
     @HttpCode(HttpStatus.CREATED)
     async createChat(
-        @Body() chat: Chat,
+        @Body() chat: CreateMessageDto,
         @Req() req,
         @Res() res,
         @UploadedFiles() files: Express.Multer.File[] 
-    ): Promise<Chat | HttpException> {
+    ): Promise<CreateMessageResponseDto | HttpException> {
         try{
             this.logger.log(`createChat: ${JSON.stringify(chat)}`);
             const userId = req.user.sub;
+            const senderName = req.user.username;
             const { receiver, message } = chat;
             let fileDetails: string[] = [];
             if (files && files.length > 0) {
@@ -37,7 +39,8 @@ export class ChatController {
                 sender: userId,
                 receiver,
                 message,
-                fileUrls: fileDetails
+                fileUrls: fileDetails,
+                senderName
             } as unknown as Chat);
 
             return res.status(HttpStatus.CREATED).json({

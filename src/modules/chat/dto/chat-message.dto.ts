@@ -17,6 +17,26 @@ export class CreateMessageDto {
     [key: string]: string;
   };
 
+  @IsOptional()
+  senderName?: string;
+
   timestamp?: Date; 
 }
   
+export class CreateMessageResponseDto {
+  @IsString()
+  sender: string;  
+  
+  @IsString()
+  receiver: string;    
+
+  @IsString()
+  message: object;   
+
+  @IsOptional()
+  fileUrls: {
+    [key: string]: string;
+  };
+
+  timestamp?: Date; 
+}

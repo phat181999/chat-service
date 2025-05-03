@@ -7,6 +7,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { TcpService } from "src/shared/module/tcp/service/tcp.service";
 import { ChatKafkaTopic } from "src/shared/interface/kafka";
+import { CreateMessageDto, CreateMessageResponseDto } from "../dto/chat-message.dto";
 
 @Injectable()
 export class ChatService  {
@@ -20,10 +21,9 @@ export class ChatService  {
         this.logger = new Logger(ChatService.name);
     }
 
-    async createChat(chat: Chat): Promise<Chat> {
+    async createChat(chat: CreateMessageDto): Promise<CreateMessageResponseDto | null> {
         try {
-            const { sender, receiver, message, fileUrls  } = chat;
-            console.log(chat, "chat create")
+            const { sender, receiver, message, fileUrls, senderName  } = chat;
             const cachedUser = await this.cacheManager.get(`user:${receiver}`);
             if (cachedUser === 'exists') {
                 this.logger.log(`User ${receiver} exists in cache`);
@@ -42,11 +42,11 @@ export class ChatService  {
                 throw new HttpException('Receiver not found', HttpStatus.NOT_FOUND);
             }
             const newChat = await new this.chatModel(chat);
-            const valueEmitToNoti = {sender, receiver, message, timestamp: new Date()};
+            const valueEmitToNoti = {senderName, receiver, message, timestamp: new Date()};
             await this.kafkaService.sendMessage({
                 topic: ChatKafkaTopic.MESSAGE_CREATED,
                 message: {
-                  key: sender,
+                  key: senderName ?? 'unknown_sender',
                   value: JSON.stringify(valueEmitToNoti),
                   timestamp: new Date(),
                 },
@@ -57,7 +57,7 @@ export class ChatService  {
         }
     }
     
-    async findAllChats(): Promise<Chat[]> {
+    async findAllChats(): Promise<Chat[] | null> {
         try {
             return await this.chatModel.find().exec();
         } catch (error) {
@@ -65,7 +65,7 @@ export class ChatService  {
         }
     }
 
-    async findChatsBySender(sender: string): Promise<Chat[]> {
+    async findChatsBySender(sender: string): Promise<Chat[]| null> {
         try {
             return await this.chatModel.find({ sender }).exec();
         } catch (error) {
@@ -73,7 +73,7 @@ export class ChatService  {
         }
     }
 
-    async findChatsByReceiver(receiver: string): Promise<Chat[]> {
+    async findChatsByReceiver(receiver: string): Promise<Chat[]| null> {
         try {
             return await this.chatModel.find({ receiver }).exec();
         } catch (error) {
