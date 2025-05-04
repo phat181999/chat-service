@@ -7,6 +7,8 @@ import { ChatModule } from './modules/chat/chat.module';
 import { ConfigService } from '@nestjs/config';
 import { KafkaModule } from './modules/kafka/kafka.module';
 import { TcpModule } from './shared/module/tcp/tcp.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { CloudinaryModule } from './config/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -19,7 +21,9 @@ import { TcpModule } from './shared/module/tcp/tcp.module';
       inject: [ConfigService],
     }),
     ChatModule,
-    TcpModule
+    TcpModule,
+    RedisModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService, ],

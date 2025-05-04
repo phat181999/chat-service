@@ -9,12 +9,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { KafkaModule } from '../kafka/kafka.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { TcpModule } from 'src/shared/module/tcp/tcp.module';
-import { CloudinaryProvider } from 'src/config/cloudinary.provider';
+import { CloudinaryModule } from 'src/config/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     forwardRef(() => KafkaModule),
     forwardRef(() => TcpModule),
+    forwardRef(() => CloudinaryModule),
     CacheModule.register(),
     MongooseModule.forFeature([{ name: 'Chat', schema: ChatSchema }]),
     ConfigModule, 
@@ -31,9 +32,7 @@ import { CloudinaryProvider } from 'src/config/cloudinary.provider';
   providers: [
     ChatService, 
     AuthGuard,
-    CloudinaryProvider
   ],
-  exports:['CLOUDINARY']
 })
 
 export class ChatModule {
